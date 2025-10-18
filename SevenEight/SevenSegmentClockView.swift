@@ -12,7 +12,7 @@ struct SevenSegmentClockView: View {
     let color: Color
     let showPMDot: Bool
     
-    init(time: String = "88:88", color: Color = .blue, showPMDot: Bool = false) {
+    init(time: String = "88:88", color: Color = Color.blue, showPMDot: Bool = false) {
         self.time = time
         self.color = color
         self.showPMDot = showPMDot
@@ -81,7 +81,7 @@ struct ColonView: View {
                 .frame(width: 12, height: 12)
             Spacer()
         }
-        .padding(.vertical, 20)
+        .padding(EdgeInsets(top: 20, leading: 0, bottom: 20, trailing: 0))
     }
 }
 
@@ -96,7 +96,7 @@ struct PMDotView: View {
             Circle()
                 .fill(color)
                 .frame(width: 16, height: 16)
-                .padding(.bottom, 8)
+                .padding(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
         }
     }
 }
@@ -105,11 +105,11 @@ struct PMDotView: View {
 
 #Preview {
     VStack(spacing: 40) {
-        SevenSegmentClockView(time: "12:34", color: .blue, showPMDot: false)
+        SevenSegmentClockView(time: "12:34", color: Color.blue, showPMDot: false)
             .frame(height: 120)
             .padding()
         
-        SevenSegmentClockView(time: "08:45", color: .red, showPMDot: true)
+        SevenSegmentClockView(time: "08:45", color: Color.red, showPMDot: true)
             .frame(height: 120)
             .padding()
     }
