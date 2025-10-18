@@ -9,34 +9,25 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack(spacing: 30) {
-            // Seven-segment display placeholder
-            Text("88:88")
-                .font(.system(size: 100, weight: .bold, design: .monospaced))
-                .foregroundColor(.primary)
+        ZStack {
+            Color.black.ignoresSafeArea()
             
-            // Bundle ID
-            Text("com.MLF.SevenEight")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Divider()
-                .padding(.horizontal, 40)
-            
-            // App description
-            VStack(spacing: 12) {
-                Text("Seven-Segment Digital Clock")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+            VStack(spacing: 0) {
+                // Upper 2/3: Seven-Segment Clock Display
+                SevenSegmentClockView(time: "88:88", color: .blue, showPMDot: false)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: UIScreen.main.bounds.height * 2/3)
                 
-                Text("Nightstand clock with 7-day weather forecast")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                // Lower 1/3: Weather placeholder
+                VStack(spacing: 20) {
+                    Text("Weather forecast placeholder")
+                        .font(.title3)
+                        .foregroundColor(.blue.opacity(0.6))
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: UIScreen.main.bounds.height * 1/3)
             }
         }
-        .padding()
     }
 }
 
