@@ -2,65 +2,44 @@
 //  ContentView.swift
 //  SevenEight
 //
-//  Created by Michael Fluharty on 10/18/25.
+//  Main display for seven-segment clock and weather forecast
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+        VStack(spacing: 30) {
+            // Seven-segment display placeholder
+            Text("88:88")
+                .font(.system(size: 100, weight: .bold, design: .monospaced))
+                .foregroundColor(.primary)
+            
+            // Bundle ID
+            Text("com.MLF.SevenEight")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Divider()
+                .padding(.horizontal, 40)
+            
+            // App description
+            VStack(spacing: 12) {
+                Text("Seven-Segment Digital Clock")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Nightstand clock with 7-day weather forecast")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
             }
         }
+        .padding()
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
