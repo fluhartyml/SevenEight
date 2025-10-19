@@ -30,84 +30,75 @@ struct ContentView: View {
                     .frame(height: geometry.size.height * 0.6)
                     
                     // Weather section - bottom 40%
-                    HStack(alignment: .top, spacing: 80) {
-                        // Current weather - left side
-                        VStack(spacing: 12) {
+                    VStack(spacing: 20) {
+                        // Current weather - top
+                        HStack(spacing: 12) {
                             if let weather = weatherViewModel.currentWeather {
                                 Image(systemName: weather.symbolName)
-                                    .font(.system(size: 60))
+                                    .font(.system(size: 50))
                                     .foregroundColor(.white)
                                 
                                 Text("\(Int(weather.temperature.value))°")
-                                    .font(.system(size: 48, weight: .light))
+                                    .font(.system(size: 40, weight: .light))
                                     .foregroundColor(.white)
                                 
                                 Text(weather.condition.description.capitalized)
-                                    .font(.system(size: 18))
+                                    .font(.system(size: 16))
                                     .foregroundColor(.gray)
                                 
                                 Text("Current Location")
-                                    .font(.system(size: 14))
+                                    .font(.system(size: 12))
                                     .foregroundColor(.gray.opacity(0.7))
                             } else if let error = weatherViewModel.weatherError {
                                 Text("Unable to fetch weather")
-                                    .font(.system(size: 16))
+                                    .font(.system(size: 14))
                                     .foregroundColor(.red)
-                                Text(error)
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.red.opacity(0.7))
-                                    .multilineTextAlignment(.center)
                             } else {
                                 ProgressView()
                                     .tint(.white)
                             }
                         }
-                        .frame(maxWidth: .infinity)
                         
-                        // 7-day forecast - right side
-                        VStack(alignment: .leading, spacing: 18) {
-                            if let forecast = weatherViewModel.dailyForecast, !forecast.isEmpty {
-                                ForEach(Array(forecast.prefix(7).enumerated()), id: \.element.date) { index, day in
-                                    HStack(spacing: 20) {
-                                        // Day name
-                                        Text(dayLabel(for: day.date, index: index))
-                                            .font(.system(size: 18, weight: .medium))
-                                            .foregroundColor(.white)
-                                            .frame(width: 90, alignment: .leading)
-                                        
-                                        // Weather icon
-                                        Image(systemName: day.symbolName)
-                                            .font(.system(size: 28))
-                                            .foregroundColor(.white)
-                                            .frame(width: 40)
-                                        
-                                        // High/Low temps
-                                        HStack(spacing: 6) {
-                                            Text("\(Int(day.highTemperature.value))°")
-                                                .font(.system(size: 20, weight: .semibold))
+                        // 7-day forecast - horizontal scroll
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 20) {
+                                if let forecast = weatherViewModel.dailyForecast, !forecast.isEmpty {
+                                    ForEach(Array(forecast.prefix(7).enumerated()), id: \.element.date) { index, day in
+                                        VStack(spacing: 8) {
+                                            // Day name
+                                            Text(dayLabel(for: day.date, index: index))
+                                                .font(.system(size: 14, weight: .medium))
                                                 .foregroundColor(.white)
                                             
-                                            Text("/")
-                                                .font(.system(size: 20))
-                                                .foregroundColor(.gray)
+                                            // Weather icon
+                                            Image(systemName: day.symbolName)
+                                                .font(.system(size: 28))
+                                                .foregroundColor(.white)
                                             
-                                            Text("\(Int(day.lowTemperature.value))°")
-                                                .font(.system(size: 20, weight: .regular))
-                                                .foregroundColor(.gray)
+                                            // High/Low temps
+                                            VStack(spacing: 2) {
+                                                Text("\(Int(day.highTemperature.value))°")
+                                                    .font(.system(size: 18, weight: .semibold))
+                                                    .foregroundColor(.white)
+                                                
+                                                Text("\(Int(day.lowTemperature.value))°")
+                                                    .font(.system(size: 16, weight: .regular))
+                                                    .foregroundColor(.gray)
+                                            }
                                         }
+                                        .frame(width: 80)
                                     }
+                                } else {
+                                    Text("Loading forecast...")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.gray)
                                 }
-                            } else {
-                                Text("Loading forecast...")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.gray)
                             }
+                            .padding(.horizontal, 20)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 20)
                     }
                     .frame(height: geometry.size.height * 0.4)
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 20)
                 }
                 
                 // Settings button - more visible
@@ -153,16 +144,9 @@ struct ContentView: View {
     }
     
     private func dayLabel(for date: Date, index: Int) -> String {
-        let calendar = Calendar.current
-        if calendar.isDateInToday(date) {
-            return "Today"
-        } else if calendar.isDateInTomorrow(date) {
-            return "Tomorrow"
-        } else {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "EEE" // Mon, Tue, Wed, etc.
-            return formatter.string(from: date)
-        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE" // Full day name: Monday, Tuesday, etc.
+        return formatter.string(from: date)
     }
 }
 
