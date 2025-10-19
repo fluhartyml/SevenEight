@@ -28,7 +28,9 @@ struct ContentView: View {
                 // Clock Display (upper 2/3)
                 SevenSegmentClockView(
                     time: formattedTime,
-                    color: settings.displayColor
+                    color: settings.displayColor,
+                    showAMPM: settings.is12Hour,
+                    isAM: isAM
                 )
                 .padding(EdgeInsets(top: 0, leading: 40, bottom: 0, trailing: 40))
                 
@@ -71,18 +73,20 @@ struct ContentView: View {
     }
     
     private var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = settings.is12Hour ? "hh:mm" : "HH:mm"
-        return formatter.string(from: currentDate)
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: currentDate)
+        let minute = calendar.component(.minute, from: currentDate)
+        
+        // Manual 12/24 hour conversion using circular clock math
+        let displayHour = settings.is12Hour ? ((hour - 1) % 12) + 1 : hour
+        
+        return String(format: "%02d:%02d", displayHour, minute)
     }
     
-    private var isPM: Bool {
-        if settings.is12Hour {
-            let calendar = Calendar.current
-            let hour = calendar.component(.hour, from: currentDate)
-            return hour >= 12
-        }
-        return false
+    private var isAM: Bool {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: currentDate)
+        return hour < 12
     }
 }
 
