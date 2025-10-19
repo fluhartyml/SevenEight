@@ -2,7 +2,7 @@
 //  SevenSegmentClockView.swift
 //  SevenEight
 //
-//  Seven-segment LED clock display with colon
+//  Bare-bones seven-segment clock - digits only
 //
 
 import SwiftUI
@@ -10,17 +10,15 @@ import SwiftUI
 struct SevenSegmentClockView: View {
     let time: String // Format: "HH:MM"
     let color: Color
-    let showPMDot: Bool
     
-    init(time: String = "88:88", color: Color = Color.blue, showPMDot: Bool = false) {
+    init(time: String = "88:88", color: Color = Color.blue) {
         self.time = time
         self.color = color
-        self.showPMDot = showPMDot
     }
     
     var body: some View {
         GeometryReader { geometry in
-            let digitWidth = geometry.size.width / 6
+            let digitWidth = geometry.size.width / 4
             let digitHeight = geometry.size.height
             
             HStack(spacing: 0) {
@@ -32,72 +30,31 @@ struct SevenSegmentClockView: View {
                 SevenSegmentDigit(digit: digit(at: 1), color: color)
                     .frame(width: digitWidth, height: digitHeight)
                 
-                // Colon
-                ColonView(color: color)
-                    .frame(width: digitWidth * 0.5, height: digitHeight)
-                
                 // Third digit (tens of minutes)
-                SevenSegmentDigit(digit: digit(at: 3), color: color)
+                SevenSegmentDigit(digit: digit(at: 2), color: color)
                     .frame(width: digitWidth, height: digitHeight)
                 
                 // Fourth digit (ones of minutes)
-                SevenSegmentDigit(digit: digit(at: 4), color: color)
+                SevenSegmentDigit(digit: digit(at: 3), color: color)
                     .frame(width: digitWidth, height: digitHeight)
-                
-                // PM dot
-                if showPMDot {
-                    PMDotView(color: color)
-                        .frame(width: digitWidth * 0.5, height: digitHeight)
-                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
     
+    // MARK: - Clean digit extraction
+    
     private func digit(at index: Int) -> Int {
-        let cleaned = time.replacingOccurrences(of: ":", with: "")
-        guard index < cleaned.count,
-              let digit = Int(String(cleaned[cleaned.index(cleaned.startIndex, offsetBy: index)])) else {
-            return 8
+        // Remove colon and extract pure digits
+        let digitsOnly = time.replacingOccurrences(of: ":", with: "")
+        
+        // Extract digit at index: 0, 1, 2, 3
+        guard index < digitsOnly.count,
+              let digit = Int(String(digitsOnly[digitsOnly.index(digitsOnly.startIndex, offsetBy: index)])) else {
+            return 8 // Default to 8 if parsing fails
         }
+        
         return digit
-    }
-}
-
-// MARK: - Colon View
-
-struct ColonView: View {
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            Circle()
-                .fill(color)
-                .frame(width: 12, height: 12)
-            Spacer()
-            Circle()
-                .fill(color)
-                .frame(width: 12, height: 12)
-            Spacer()
-        }
-        .padding(EdgeInsets(top: 20, leading: 0, bottom: 20, trailing: 0))
-    }
-}
-
-// MARK: - PM Dot View
-
-struct PMDotView: View {
-    let color: Color
-    
-    var body: some View {
-        VStack {
-            Spacer()
-            Circle()
-                .fill(color)
-                .frame(width: 16, height: 16)
-                .padding(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
-        }
     }
 }
 
@@ -105,11 +62,11 @@ struct PMDotView: View {
 
 #Preview {
     VStack(spacing: 40) {
-        SevenSegmentClockView(time: "12:34", color: Color.blue, showPMDot: false)
+        SevenSegmentClockView(time: "12:34", color: Color.blue)
             .frame(height: 120)
             .padding()
         
-        SevenSegmentClockView(time: "08:45", color: Color.red, showPMDot: true)
+        SevenSegmentClockView(time: "20:34", color: Color.red)
             .frame(height: 120)
             .padding()
     }

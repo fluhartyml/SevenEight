@@ -6,10 +6,14 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @StateObject private var settings = AppSettings()
     @State private var showSettings = false
+    @State private var currentDate = Date()
+    
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
         ZStack {
@@ -23,23 +27,25 @@ struct ContentView: View {
                 
                 // Clock Display (upper 2/3)
                 SevenSegmentClockView(
-                    time: "88:88",
-                    color: settings.displayColor,
-                    showPMDot: false
+                    time: formattedTime,
+                    color: settings.displayColor
                 )
                 .padding(EdgeInsets(top: 0, leading: 40, bottom: 0, trailing: 40))
                 
                 Spacer()
                 
+                // DEBUG
+                Text("DEBUG: \(formattedTime)")
+                    .foregroundColor(Color.yellow)
+                
                 // Weather Placeholder (lower 1/3)
-                Text("Weather Forecast")
+                Text(settings.manualCity.isEmpty ? "Weather Forecast" : settings.manualCity)
                     .foregroundColor(Color.white.opacity(0.3))
                     .font(.title2)
                 
                 Spacer()
             }
         }
-        // iPhone: Swipe down to open settings
         .gesture(
             DragGesture()
                 .onEnded { gesture in
@@ -48,7 +54,6 @@ struct ContentView: View {
                     }
                 }
         )
-        // Apple TV: Any button press opens settings
         #if os(tvOS)
         .onPlayPauseCommand {
             showSettings = true
@@ -60,6 +65,24 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(settings: settings)
         }
+        .onReceive(timer) { _ in
+            currentDate = Date()
+        }
+    }
+    
+    private var formattedTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = settings.is12Hour ? "hh:mm" : "HH:mm"
+        return formatter.string(from: currentDate)
+    }
+    
+    private var isPM: Bool {
+        if settings.is12Hour {
+            let calendar = Calendar.current
+            let hour = calendar.component(.hour, from: currentDate)
+            return hour >= 12
+        }
+        return false
     }
 }
 
