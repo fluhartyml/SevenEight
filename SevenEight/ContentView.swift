@@ -2,222 +2,165 @@
 //  ContentView.swift
 //  SevenEight
 //
-//  Main view showing seven-segment clock and weather forecast
+//  Seven-segment clock with current weather and 7-day forecast
 //
 
 import SwiftUI
-import Combine
 import WeatherKit
-import CoreLocation
 
 struct ContentView: View {
+    @StateObject private var clockViewModel = ClockViewModel()
     @StateObject private var settings = AppSettings()
-    @StateObject private var weatherViewModel = WeatherViewModel()
-    @StateObject private var locationManager = LocationManager()
-    
+    @State private var weatherViewModel = WeatherViewModel()
     @State private var showSettings = false
-    @State private var currentDate = Date()
-    
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        ZStack {
-            Color.black
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Top spacer for margin
-                Spacer()
-                    .frame(height: 60)
+        GeometryReader { geometry in
+            ZStack {
+                Color.black.ignoresSafeArea()
                 
-                // Clock Display (upper 2/3)
-                SevenSegmentClockView(
-                    time: formattedTime,
-                    color: settings.displayColor,
-                    showAMPM: settings.is12Hour,
-                    isAM: isAM
-                )
-                .padding(EdgeInsets(top: 0, leading: 40, bottom: 0, trailing: 40))
-                
-                Spacer()
-                
-                // Weather Display
-                weatherDisplay
-                
-                Spacer()
-            }
-        }
-        .gesture(
-            DragGesture()
-                .onEnded { gesture in
-                    if gesture.translation.height > 50 {
-                        showSettings = true
+                VStack(spacing: 0) {
+                    // Clock display - top 60%
+                    SevenSegmentClockView(
+                        time: formattedTime,
+                        color: settings.displayColor,
+                        showAMPM: settings.is12Hour,
+                        isAM: isAM
+                    )
+                    .frame(height: geometry.size.height * 0.6)
+                    
+                    // Weather section - bottom 40%
+                    HStack(alignment: .top, spacing: 40) {
+                        // Current weather - left side
+                        VStack(spacing: 8) {
+                            if let weather = weatherViewModel.currentWeather {
+                                Image(systemName: weather.symbolName)
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.white)
+                                
+                                Text("\(Int(weather.temperature.value))°")
+                                    .font(.system(size: 48, weight: .light))
+                                    .foregroundColor(.white)
+                                
+                                Text(weather.condition.description.capitalized)
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.gray)
+                                
+                                Text("Current Location")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray.opacity(0.7))
+                            } else if let error = weatherViewModel.weatherError {
+                                Text("Unable to fetch weather")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.red)
+                                Text(error)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.red.opacity(0.7))
+                                    .multilineTextAlignment(.center)
+                            } else {
+                                ProgressView()
+                                    .tint(.white)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        // 7-day forecast - right side
+                        VStack(alignment: .leading, spacing: 12) {
+                            if let forecast = weatherViewModel.dailyForecast, !forecast.isEmpty {
+                                ForEach(Array(forecast.prefix(7).enumerated()), id: \.element.date) { index, day in
+                                    HStack(spacing: 16) {
+                                        // Day name
+                                        Text(dayLabel(for: day.date, index: index))
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.white)
+                                            .frame(width: 70, alignment: .leading)
+                                        
+                                        // Weather icon
+                                        Image(systemName: day.symbolName)
+                                            .font(.system(size: 24))
+                                            .foregroundColor(.white)
+                                            .frame(width: 30)
+                                        
+                                        // High/Low temps
+                                        HStack(spacing: 4) {
+                                            Text("\(Int(day.highTemperature.value))°")
+                                                .font(.system(size: 18, weight: .semibold))
+                                                .foregroundColor(.white)
+                                            
+                                            Text("/")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.gray)
+                                            
+                                            Text("\(Int(day.lowTemperature.value))°")
+                                                .font(.system(size: 18, weight: .regular))
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                }
+                            } else {
+                                Text("Loading forecast...")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 20)
                     }
+                    .frame(height: geometry.size.height * 0.4)
+                    .padding(.horizontal, 40)
                 }
-        )
-        #if os(tvOS)
-        .onPlayPauseCommand {
-            showSettings = true
-        }
-        .onMenuCommand {
-            showSettings = true
-        }
-        #endif
-        .sheet(isPresented: $showSettings) {
-            SettingsView(settings: settings)
-        }
-        .onReceive(timer) { _ in
-            currentDate = Date()
-        }
-        .task {
-            locationManager.requestPermission()
-        }
-        .onChange(of: locationManager.location) { oldValue, newValue in
-            if let location = newValue {
-                Task {
-                    await weatherViewModel.fetchWeather(for: location, useFahrenheit: settings.isFahrenheit)
+                
+                // Settings button
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: { showSettings = true }) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.gray.opacity(0.3))
+                                .padding()
+                        }
+                    }
+                    Spacer()
                 }
             }
-        }
-        .onChange(of: settings.manualCity) { oldValue, newValue in
-            if !newValue.isEmpty, let location = locationManager.location {
-                Task {
-                    await weatherViewModel.fetchWeather(for: location, useFahrenheit: settings.isFahrenheit)
-                }
+            .sheet(isPresented: $showSettings) {
+                SettingsView(settings: settings)
             }
         }
+        .preferredColorScheme(.dark)
     }
     
-    @ViewBuilder
-    private var weatherDisplay: some View {
-        if weatherViewModel.isLoading {
-            ProgressView()
-                .tint(.white)
-        } else if let error = weatherViewModel.errorMessage {
-            Text(error)
-                .foregroundColor(Color.red.opacity(0.6))
-                .font(.caption)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-        } else if let temperature = weatherViewModel.temperature,
-                  let condition = weatherViewModel.condition {
-            VStack(spacing: 8) {
-                // Temperature
-                Text(temperature)
-                    .foregroundColor(Color.white.opacity(0.8))
-                    .font(.system(size: 48, weight: .light, design: .rounded))
-                
-                // Condition
-                Text(condition)
-                    .foregroundColor(Color.white.opacity(0.6))
-                    .font(.title3)
-                
-                // Location
-                if !settings.manualCity.isEmpty {
-                    Text(settings.manualCity)
-                        .foregroundColor(Color.white.opacity(0.4))
-                        .font(.caption)
-                } else {
-                    Text("Current Location")
-                        .foregroundColor(Color.white.opacity(0.4))
-                        .font(.caption)
-                }
-            }
-        } else {
-            Text("Weather Forecast")
-                .foregroundColor(Color.white.opacity(0.3))
-                .font(.title2)
-        }
-    }
+    // MARK: - Time Formatting
     
     private var formattedTime: String {
         let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: currentDate)
-        let minute = calendar.component(.minute, from: currentDate)
+        let hour = calendar.component(.hour, from: clockViewModel.currentTime)
+        let minute = calendar.component(.minute, from: clockViewModel.currentTime)
         
-        // Manual 12/24 hour conversion using circular clock math
-        let displayHour = settings.is12Hour ? ((hour - 1) % 12) + 1 : hour
-        
-        return String(format: "%02d:%02d", displayHour, minute)
-    }
-    
-    private var isAM: Bool {
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: currentDate)
-        return hour < 12
-    }
-}
-
-// MARK: - Location Manager
-
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published var location: CLLocation?
-    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
-    
-    private let locationManager = CLLocationManager()
-    
-    override init() {
-        super.init()
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
-    }
-    
-    func requestPermission() {
-        locationManager.requestWhenInUseAuthorization()
-    }
-    
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        authorizationStatus = manager.authorizationStatus
-        
-        switch authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            locationManager.requestLocation()
-        default:
-            break
+        if settings.is12Hour {
+            let displayHour = ((hour - 1) % 12) + 1
+            return String(format: "%02d:%02d", displayHour, minute)
+        } else {
+            return String(format: "%02d:%02d", hour, minute)
         }
     }
     
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        location = locations.first
+    private var isAM: Bool {
+        let hour = Calendar.current.component(.hour, from: clockViewModel.currentTime)
+        return hour < 12
     }
     
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location error: \(error.localizedDescription)")
-    }
-}
-
-// MARK: - Weather ViewModel
-
-@MainActor
-class WeatherViewModel: ObservableObject {
-    @Published var temperature: String?
-    @Published var condition: String?
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-    
-    private let weatherService = WeatherService.shared
-    
-    func fetchWeather(for location: CLLocation, useFahrenheit: Bool) async {
-        isLoading = true
-        errorMessage = nil
-        
-        do {
-            let weather = try await weatherService.weather(for: location)
-            let currentWeather = weather.currentWeather
-            
-            // Format temperature
-            let unit = useFahrenheit ? UnitTemperature.fahrenheit : UnitTemperature.celsius
-            let temp = currentWeather.temperature.converted(to: unit)
-            temperature = String(format: "%.0f°", temp.value)
-            
-            // Get condition description
-            condition = currentWeather.condition.description
-            
-            isLoading = false
-        } catch {
-            errorMessage = "Unable to fetch weather"
-            isLoading = false
-            print("Weather fetch error: \(error)")
+    private func dayLabel(for date: Date, index: Int) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEE" // Mon, Tue, Wed, etc.
+            return formatter.string(from: date)
         }
     }
 }
