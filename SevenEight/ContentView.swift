@@ -46,12 +46,12 @@ struct ContentView: View {
                                             .foregroundColor(.white)
                                         
                                         // High temp
-                                        Text("\(Int(day.highTemperature.value))°")
+                                        Text("\(convertTemp(day.highTemperature.value))°")
                                             .font(.system(size: 20, weight: .semibold))
                                             .foregroundColor(.white)
                                         
                                         // Low temp
-                                        Text("\(Int(day.lowTemperature.value))°")
+                                        Text("\(convertTemp(day.lowTemperature.value))°")
                                             .font(.system(size: 18, weight: .regular))
                                             .foregroundColor(.gray)
                                     }
@@ -87,6 +87,15 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+    
+    // MARK: - Temperature Conversion
+    
+    private func convertTemp(_ celsius: Double) -> Int {
+        if settings.isFahrenheit {
+            return Int((celsius * 9/5) + 32)
+        }
+        return Int(celsius)
     }
     
     // MARK: - Time Formatting
