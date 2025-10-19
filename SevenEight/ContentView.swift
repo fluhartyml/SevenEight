@@ -36,10 +36,6 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                // DEBUG
-                Text("DEBUG: \(formattedTime)")
-                    .foregroundColor(Color.yellow)
-                
                 // Weather Placeholder (lower 1/3)
                 Text(settings.manualCity.isEmpty ? "Weather Forecast" : settings.manualCity)
                     .foregroundColor(Color.white.opacity(0.3))
