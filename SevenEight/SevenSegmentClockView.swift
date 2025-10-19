@@ -22,49 +22,45 @@ struct SevenSegmentClockView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Main clock display
-                HStack(spacing: 0) {
-                    let digitWidth = geometry.size.width / 5.5
-                    let colonWidth = geometry.size.width / 8
-                    let digitHeight = geometry.size.height
-                    
-                    // First digit (tens of hours)
-                    SevenSegmentDigit(digit: digit(at: 0), color: color)
-                        .frame(width: digitWidth, height: digitHeight)
-                    
-                    // Second digit (ones of hours)
-                    SevenSegmentDigit(digit: digit(at: 1), color: color)
-                        .frame(width: digitWidth, height: digitHeight)
-                    
-                    // Colon (wider spacing)
-                    ColonView(color: color)
-                        .frame(width: colonWidth, height: digitHeight)
-                    
-                    // Third digit (tens of minutes)
-                    SevenSegmentDigit(digit: digit(at: 2), color: color)
-                        .frame(width: digitWidth, height: digitHeight)
-                    
-                    // Fourth digit (ones of minutes)
-                    SevenSegmentDigit(digit: digit(at: 3), color: color)
-                        .frame(width: digitWidth, height: digitHeight)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack(spacing: 0) {
+                let digitWidth = geometry.size.width / 5.5
+                let colonWidth = geometry.size.width / 8
+                let digitHeight = geometry.size.height
                 
-                // AM/PM indicator in bottom right
+                // First digit (tens of hours)
+                SevenSegmentDigit(digit: digit(at: 0), color: color)
+                    .frame(width: digitWidth, height: digitHeight)
+                
+                // Second digit (ones of hours)
+                SevenSegmentDigit(digit: digit(at: 1), color: color)
+                    .frame(width: digitWidth, height: digitHeight)
+                
+                // Colon (wider spacing)
+                ColonView(color: color)
+                    .frame(width: colonWidth, height: digitHeight)
+                
+                // Third digit (tens of minutes)
+                SevenSegmentDigit(digit: digit(at: 2), color: color)
+                    .frame(width: digitWidth, height: digitHeight)
+                
+                // Fourth digit (ones of minutes)
+                SevenSegmentDigit(digit: digit(at: 3), color: color)
+                    .frame(width: digitWidth, height: digitHeight)
+                
+                // AM/PM indicator (outside digits, customary position)
                 if showAMPM {
                     VStack {
                         Spacer()
-                        HStack {
-                            Spacer()
-                            Text(isAM ? "AM" : "PM")
-                                .font(.system(size: geometry.size.height * 0.15, weight: .medium, design: .monospaced))
-                                .foregroundColor(color)
-                                .padding(EdgeInsets(top: 0, leading: 0, bottom: geometry.size.height * 0.05, trailing: geometry.size.width * 0.05))
-                        }
+                        Text(isAM ? "AM" : "PM")
+                            .font(.system(size: geometry.size.height * 0.2, weight: .medium, design: .monospaced))
+                            .foregroundColor(color)
+                            .padding(.leading, 20)
+                            .padding(.bottom, geometry.size.height * 0.1)
                     }
+                    .frame(height: digitHeight)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
     
