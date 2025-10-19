@@ -22,9 +22,9 @@ struct SevenSegmentClockView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            HStack(spacing: 0) {
-                let digitWidth = geometry.size.width / 5.5
-                let colonWidth = geometry.size.width / 8
+            HStack(spacing: geometry.size.width * 0.05) { // Increased spacing between digits
+                let digitWidth = geometry.size.width / 6 // Adjusted for new spacing
+                let colonWidth = geometry.size.width / 10
                 let digitHeight = geometry.size.height
                 
                 // First digit (tens of hours) - hide if 0 in 12-hour mode

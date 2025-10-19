@@ -13,7 +13,7 @@ struct SevenSegmentDigit: View {
     let segmentWidth: CGFloat
     let segmentGap: CGFloat
     
-    init(digit: Int, color: Color = .blue, segmentWidth: CGFloat = 12, segmentGap: CGFloat = 4) {
+    init(digit: Int, color: Color = .blue, segmentWidth: CGFloat = 18, segmentGap: CGFloat = 4) {
         self.digit = digit
         self.color = color
         self.segmentWidth = segmentWidth

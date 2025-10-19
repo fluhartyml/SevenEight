@@ -29,8 +29,9 @@ struct ContentView: View {
                     )
                     .frame(height: geometry.size.height * 0.65)
                     
-                    // 7-day forecast - horizontal scroll at bottom
-                    ScrollView(.horizontal, showsIndicators: false) {
+                    // 7-day forecast - centered at bottom
+                    HStack {
+                        Spacer()
                         HStack(spacing: 30) {
                             if let forecast = weatherViewModel.dailyForecast, !forecast.isEmpty {
                                 ForEach(Array(forecast.prefix(7).enumerated()), id: \.element.date) { index, day in
@@ -38,48 +39,57 @@ struct ContentView: View {
                                         // Day name
                                         Text(dayLabel(for: day.date, index: index))
                                             .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(settings.displayColor)
                                         
                                         // Weather icon
                                         Image(systemName: day.symbolName)
                                             .font(.system(size: 32))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(settings.displayColor)
                                         
                                         // High temp
                                         Text("\(convertTemp(day.highTemperature.value))°")
                                             .font(.system(size: 20, weight: .semibold))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(settings.displayColor)
                                         
                                         // Low temp
                                         Text("\(convertTemp(day.lowTemperature.value))°")
                                             .font(.system(size: 18, weight: .regular))
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(settings.displayColor.opacity(0.6))
                                     }
                                     .frame(width: 90)
                                 }
                             } else {
                                 Text("Loading forecast...")
                                     .font(.system(size: 16))
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(settings.displayColor.opacity(0.6))
                             }
                         }
-                        .padding(.horizontal, 30)
+                        Spacer()
                     }
                     .frame(height: geometry.size.height * 0.35)
                 }
                 
-                // Settings button - more visible
+                // Settings button - subtle on tvOS (bottom-left for simulator access)
                 VStack {
+                    Spacer()
                     HStack {
-                        Spacer()
                         Button(action: { showSettings = true }) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 32))
-                                .foregroundColor(.white.opacity(0.6))
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 24))
+                                #if os(tvOS)
+                                .foregroundColor(.gray.opacity(0.5)) // 50% gray glyph on tvOS
+                                #else
+                                .foregroundColor(settings.displayColor.opacity(0.3)) // Visible on iOS
+                                #endif
                                 .padding(20)
                         }
+                        .buttonStyle(.plain)
+                        #if os(tvOS)
+                        .background(Color.black) // Black background on tvOS
+                        .focusable(false) // Disable focus effect
+                        #endif
+                        Spacer()
                     }
-                    Spacer()
                 }
             }
             .sheet(isPresented: $showSettings) {
