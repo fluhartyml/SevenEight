@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var settings = AppSettings()
+    @State private var showSettings = false
+    
     var body: some View {
         ZStack {
             Color.black
@@ -21,7 +24,7 @@ struct ContentView: View {
                 // Clock Display (upper 2/3)
                 SevenSegmentClockView(
                     time: "88:88",
-                    color: Color.blue,
+                    color: settings.displayColor,
                     showPMDot: false
                 )
                 .padding(EdgeInsets(top: 0, leading: 40, bottom: 0, trailing: 40))
@@ -35,6 +38,27 @@ struct ContentView: View {
                 
                 Spacer()
             }
+        }
+        // iPhone: Swipe down to open settings
+        .gesture(
+            DragGesture()
+                .onEnded { gesture in
+                    if gesture.translation.height > 50 {
+                        showSettings = true
+                    }
+                }
+        )
+        // Apple TV: Any button press opens settings
+        #if os(tvOS)
+        .onPlayPauseCommand {
+            showSettings = true
+        }
+        .onMenuCommand {
+            showSettings = true
+        }
+        #endif
+        .sheet(isPresented: $showSettings) {
+            SettingsView(settings: settings)
         }
     }
 }
