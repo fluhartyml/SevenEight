@@ -30,9 +30,9 @@ struct ContentView: View {
                     .frame(height: geometry.size.height * 0.6)
                     
                     // Weather section - bottom 40%
-                    HStack(alignment: .top, spacing: 40) {
+                    HStack(alignment: .top, spacing: 80) {
                         // Current weather - left side
-                        VStack(spacing: 8) {
+                        VStack(spacing: 12) {
                             if let weather = weatherViewModel.currentWeather {
                                 Image(systemName: weather.symbolName)
                                     .font(.system(size: 60))
@@ -65,34 +65,34 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                         
                         // 7-day forecast - right side
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 18) {
                             if let forecast = weatherViewModel.dailyForecast, !forecast.isEmpty {
                                 ForEach(Array(forecast.prefix(7).enumerated()), id: \.element.date) { index, day in
-                                    HStack(spacing: 16) {
+                                    HStack(spacing: 20) {
                                         // Day name
                                         Text(dayLabel(for: day.date, index: index))
-                                            .font(.system(size: 16, weight: .medium))
+                                            .font(.system(size: 18, weight: .medium))
                                             .foregroundColor(.white)
-                                            .frame(width: 70, alignment: .leading)
+                                            .frame(width: 90, alignment: .leading)
                                         
                                         // Weather icon
                                         Image(systemName: day.symbolName)
-                                            .font(.system(size: 24))
+                                            .font(.system(size: 28))
                                             .foregroundColor(.white)
-                                            .frame(width: 30)
+                                            .frame(width: 40)
                                         
                                         // High/Low temps
-                                        HStack(spacing: 4) {
+                                        HStack(spacing: 6) {
                                             Text("\(Int(day.highTemperature.value))°")
-                                                .font(.system(size: 18, weight: .semibold))
+                                                .font(.system(size: 20, weight: .semibold))
                                                 .foregroundColor(.white)
                                             
                                             Text("/")
-                                                .font(.system(size: 18))
+                                                .font(.system(size: 20))
                                                 .foregroundColor(.gray)
                                             
                                             Text("\(Int(day.lowTemperature.value))°")
-                                                .font(.system(size: 18, weight: .regular))
+                                                .font(.system(size: 20, weight: .regular))
                                                 .foregroundColor(.gray)
                                         }
                                     }
@@ -110,15 +110,15 @@ struct ContentView: View {
                     .padding(.horizontal, 40)
                 }
                 
-                // Settings button
+                // Settings button - more visible
                 VStack {
                     HStack {
                         Spacer()
                         Button(action: { showSettings = true }) {
                             Image(systemName: "gearshape.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.gray.opacity(0.3))
-                                .padding()
+                                .font(.system(size: 32))
+                                .foregroundColor(.white.opacity(0.6))
+                                .padding(20)
                         }
                     }
                     Spacer()
@@ -140,6 +140,7 @@ struct ContentView: View {
         
         if settings.is12Hour {
             let displayHour = ((hour - 1) % 12) + 1
+            // Always pass 4 digits, let SevenSegmentClockView handle leading zero
             return String(format: "%02d:%02d", displayHour, minute)
         } else {
             return String(format: "%02d:%02d", hour, minute)

@@ -27,9 +27,14 @@ struct SevenSegmentClockView: View {
                 let colonWidth = geometry.size.width / 8
                 let digitHeight = geometry.size.height
                 
-                // First digit (tens of hours)
-                SevenSegmentDigit(digit: digit(at: 0), color: color)
-                    .frame(width: digitWidth, height: digitHeight)
+                // First digit (tens of hours) - hide if 0 in 12-hour mode
+                if shouldShowFirstDigit {
+                    SevenSegmentDigit(digit: digit(at: 0), color: color)
+                        .frame(width: digitWidth, height: digitHeight)
+                } else {
+                    Spacer()
+                        .frame(width: digitWidth, height: digitHeight)
+                }
                 
                 // Second digit (ones of hours)
                 SevenSegmentDigit(digit: digit(at: 1), color: color)
@@ -62,6 +67,16 @@ struct SevenSegmentClockView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+    
+    // MARK: - Helper Properties
+    
+    // Hide leading zero in 12-hour mode (when showing AM/PM)
+    private var shouldShowFirstDigit: Bool {
+        if showAMPM {
+            return digit(at: 0) != 0
+        }
+        return true
     }
     
     // MARK: - Clean digit extraction
@@ -111,7 +126,7 @@ struct ColonView: View {
             .padding()
         
         // 12-hour with PM
-        SevenSegmentClockView(time: "08:42", color: Color.red, showAMPM: true, isAM: false)
+        SevenSegmentClockView(time: "02:42", color: Color.red, showAMPM: true, isAM: false)
             .frame(height: 120)
             .padding()
         
