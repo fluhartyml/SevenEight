@@ -69,7 +69,7 @@ struct ContentView: View {
                     .frame(height: geometry.size.height * 0.35)
                 }
                 
-                // Settings button - subtle on tvOS (bottom-left for simulator access)
+                // Settings button - focusable on tvOS, minimal highlight
                 VStack {
                     Spacer()
                     HStack {
@@ -77,16 +77,18 @@ struct ContentView: View {
                             Image(systemName: "gearshape")
                                 .font(.system(size: 24))
                                 #if os(tvOS)
-                                .foregroundColor(.gray.opacity(0.5)) // 50% gray glyph on tvOS
+                                .foregroundColor(.gray.opacity(0.5))
                                 #else
-                                .foregroundColor(settings.displayColor.opacity(0.3)) // Visible on iOS
+                                .foregroundColor(settings.displayColor.opacity(0.3))
                                 #endif
                                 .padding(20)
                         }
-                        .buttonStyle(.plain)
                         #if os(tvOS)
-                        .background(Color.black) // Black background on tvOS
-                        .focusable(false) // Disable focus effect
+                        .buttonStyle(.plain)
+                        .background(Color.clear)
+                        .focusEffectDisabled() // Disable white focus effect
+                        #else
+                        .buttonStyle(.plain)
                         #endif
                         Spacer()
                     }
