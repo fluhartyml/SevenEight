@@ -12,7 +12,9 @@ struct ContentView: View {
     @StateObject private var clockViewModel = ClockViewModel()
     @StateObject private var settings = AppSettings()
     @State private var weatherViewModel = WeatherViewModel()
+    @State private var alarmSettings = AlarmSettings()
     @State private var showSettings = false
+    @State private var showAlarmSettings = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -66,10 +68,20 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
-                    .frame(height: geometry.size.height * 0.35)
+                    .frame(height: geometry.size.height * 0.3)
+                    
+                    // Alarm indicators - below forecast
+                    HStack(spacing: 40) {
+                        ForEach(alarmSettings.enabledAlarmIndicators, id: \.self) { indicator in
+                            Text(indicator)
+                                .font(.system(size: 20, weight: .medium, design: .monospaced))
+                                .foregroundColor(settings.displayColor.opacity(0.8))
+                        }
+                    }
+                    .frame(height: geometry.size.height * 0.05)
                 }
                 
-                // Settings button - focusable on tvOS, minimal highlight
+                // Settings button - bottom left (app settings)
                 VStack {
                     Spacer()
                     HStack {
@@ -86,16 +98,39 @@ struct ContentView: View {
                         #if os(tvOS)
                         .buttonStyle(.plain)
                         .background(Color.clear)
-                        .focusEffectDisabled() // Disable white focus effect
+                        .focusEffectDisabled()
                         #else
                         .buttonStyle(.plain)
                         #endif
+                        
                         Spacer()
+                        
+                        // Alarm settings button - bottom right
+                        Button(action: { showAlarmSettings = true }) {
+                            Image(systemName: "alarm")
+                                .font(.system(size: 24))
+                                #if os(tvOS)
+                                .foregroundColor(.gray.opacity(0.5))
+                                #else
+                                .foregroundColor(settings.displayColor.opacity(0.3))
+                                #endif
+                                .padding(20)
+                        }
+                        #if os(tvOS)
+                        .buttonStyle(.plain)
+                        .background(Color.clear)
+                        .focusEffectDisabled()
+                        #else
+                        .buttonStyle(.plain)
+                        #endif
                     }
                 }
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView(settings: settings)
+            }
+            .sheet(isPresented: $showAlarmSettings) {
+                AlarmSettingsView(alarmSettings: alarmSettings)
             }
         }
         .preferredColorScheme(.dark)
@@ -119,7 +154,6 @@ struct ContentView: View {
         
         if settings.is12Hour {
             let displayHour = ((hour - 1) % 12) + 1
-            // Always pass 4 digits, let SevenSegmentClockView handle leading zero
             return String(format: "%02d:%02d", displayHour, minute)
         } else {
             return String(format: "%02d:%02d", hour, minute)
@@ -133,7 +167,7 @@ struct ContentView: View {
     
     private func dayLabel(for date: Date, index: Int) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE" // Full day name: Monday, Tuesday, etc.
+        formatter.dateFormat = "EEEE"
         return formatter.string(from: date)
     }
 }
